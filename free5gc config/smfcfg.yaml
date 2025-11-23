@@ -1,0 +1,109 @@
+info:
+  version: 1.0.7
+  description: SMF initial local configuration
+
+configuration:
+  smfName: SMF
+  sbi:
+    scheme: http
+    registerIPv4: 127.0.0.2
+    bindingIPv4: 127.0.0.2
+    port: 8000
+    tls:
+      key: cert/smf.key
+      pem: cert/smf.pem
+  serviceNameList:
+    - nsmf-pdusession
+    - nsmf-event-exposure
+    - nsmf-oam
+
+  # ===== CONFIGURATION DES 2 SLICES =====
+  snssaiInfos:
+    # SLICE eMBB
+    - sNssai:
+        sst: 1
+        sd: 010203
+      dnnInfos:
+        - dnn: internet
+          dns:
+            ipv4: 8.8.8.8
+            ipv6: 2001:4860:4860::8888
+    # SLICE IoT
+    - sNssai:
+        sst: 2
+        sd: 000001
+      dnnInfos:
+        - dnn: internet
+          dns:
+            ipv4: 8.8.8.8
+            ipv6: 2001:4860:4860::8888
+
+  plmnList:
+    - mcc: 208
+      mnc: 93
+  locality: area1
+
+  pfcp:
+    nodeID: 127.0.0.1
+    listenAddr: 127.0.0.1
+    externalAddr: 127.0.0.1
+    assocFailAlertInterval: 10s
+    assocFailRetryInterval: 30s
+    heartbeatInterval: 10s
+
+  # ===== 2 UPFs SÉPARÉS =====
+  userplaneInformation:
+    upNodes:
+      gNB1:
+        type: AN
+
+      # Single UPF serving both eMBB and IoT
+      UPF:
+        type: UPF
+        nodeID: 127.0.0.8
+        addr: 127.0.0.8
+        sNssaiUpfInfos:
+          - sNssai:
+              sst: 1
+              sd: 010203
+            dnnUpfInfoList:
+              - dnn: internet
+                pools:
+                  - cidr: 10.60.0.0/16
+          - sNssai:
+              sst: 2
+              sd: 000001
+            dnnUpfInfoList:
+              - dnn: internet
+                pools:
+                  - cidr: 10.61.0.0/16
+        interfaces:
+          - interfaceType: N3
+            endpoints:
+              - 127.0.0.8
+            networkInstances:
+              - internet
+
+    links:
+      - A: gNB1
+        B: UPF
+
+  t3591:
+    enable: true
+    expireTime: 16s
+    maxRetryTimes: 3
+  t3592:
+    enable: true
+    expireTime: 16s
+    maxRetryTimes: 3
+
+  nrfUri: http://127.0.0.10:8000
+  nrfCertPem: cert/nrf.pem
+  urrPeriod: 30
+  urrThreshold: 500000
+  requestedUnit: 1000
+
+logger:
+  enable: true
+  level: info
+  reportCaller: false
